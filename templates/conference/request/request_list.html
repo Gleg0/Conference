@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Requests{% endblock %}
+{% block content %}
+<div class="card shadow p-4">
+  <h3 class="mb-3">Requests</h3>
+
+  {% if requests %}
+  <ul class="list-group">
+    {% for r in requests %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ r.user.username }} -
+        {% if r.type == "ROLE_CHANGE" %}Role Change{% else %}Conference Create{% endif %} -
+        <span class="badge {% if r.status == 'PENDING' %}bg-warning{% elif r.status == 'APPROVED' %}bg-success{% else %}bg-danger{% endif %}">
+          {{ r.status }}
+        </span>
+
+        {% if r.status == "PENDING" %}
+          <a href="{% url 'conferences:request_detail' r.id %}" class="btn btn-primary btn-sm">View Details</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    <div class="alert alert-info mt-3">No pending requests</div>
+  {% endif %}
+</div>
+{% endblock %}
