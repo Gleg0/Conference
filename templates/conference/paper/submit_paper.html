@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Submit Paper{% endblock %}
+{% block content %}
+<div class="card shadow p-4">
+  <h3 class="mb-3">Submit Paper to {{ conference.title }}</h3>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-3">
+      {{ form.title.label_tag }}
+      {{ form.title }}
+      {% if form.title.errors %}
+        <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.abstract.label_tag }}
+      {{ form.abstract }}
+      {% if form.abstract.errors %}
+        <div class="invalid-feedback d-block">{{ form.abstract.errors.0 }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.file.label_tag }}
+      {{ form.file }}
+      {% if form.file.errors %}
+        <div class="invalid-feedback d-block">{{ form.file.errors.0 }}</div>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Submit Paper</button>
+  </form>
+</div>
+{% endblock %}
