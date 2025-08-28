@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ conference.title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h2 class="card-title">{{ conference.title }}</h2>
+        <p class="card-text">{{ conference.description }}</p>
+        <p><strong>Starts:</strong> {{ conference.starts_at }}</p>
+        <p><strong>Ends:</strong> {{ conference.ends_at }}</p>
+        <p><strong>Speaker:</strong> {{ conference.speaker.username }}</p>
+
+        {% if user.is_authenticated %}
+            {% if user in conference.participants.all %}
+                <p class="text-success">
+                    <i class="bi bi-check-circle"></i> You have joined this conference
+                </p>
+                <a href="{% url 'conferences:submit_paper' conference.id %}" class="btn btn-success mt-2">
+                    Submit Paper
+                </a>
+                <a href="{% url 'conferences:conference_papers' conference.id %}" class="btn btn-primary mt-2">
+                    My Papers
+                </a>
+                <a href="{% url 'conferences:conference_papers' conference.id %}" class="btn btn-info mt-2">
+                    View All Papers
+                </a>
+            {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button class="btn btn-primary">Join Conference</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <p>
+                <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to join
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
