@@ -66,7 +66,6 @@ def logout_view(request):
     logout(request)
     return redirect("conferences:home")
 
-@login_required
 def conference_list(request):
     conferences = Conference.objects.all().order_by("starts_at")
     return render(request, "conference/conference/conferences.html", {"conferences": conferences})
