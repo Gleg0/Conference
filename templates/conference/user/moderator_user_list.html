@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<h2>Users Management (Moderator)</h2>
+
+<form method="get" class="mb-3">
+    <select name="role" onchange="this.form.submit()" class="form-select w-auto d-inline">
+        <option value="">All</option>
+        <option value="USER" {% if role_filter == "USER" %}selected{% endif %}>Users</option>
+        <option value="SPEAKER" {% if role_filter == "SPEAKER" %}selected{% endif %}>Speakers</option>
+    </select>
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Change Role</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <a href="{% url 'conferences:moderator_change_role' user.id %}" class="btn btn-sm btn-primary">
+                    Toggle Role
+                </a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4">No users found.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
