@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Add Review{% endblock %}
+
+{% block content %}
+<div class="card shadow p-4">
+    <h3 class="mb-3">Add Review for {{ paper.title }}</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="mb-3">
+            {{ form.rating.label_tag }}
+            {{ form.rating }}
+            {% for error in form.rating.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.comment.label_tag }}
+            {{ form.comment }}
+            {% for error in form.comment.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit Review</button>
+    </form>
+</div>
+{% endblock %}
