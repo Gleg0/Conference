@@ -21,7 +21,9 @@
                             </small>
                         </p>
                         <p class="card-text"><strong>Speaker:</strong> {{ conference.speaker.username }}</p>
+                        {% if user.is_authenticated %}
                         <a href="{% url 'conferences:conference_detail' conference.pk %}" class="btn btn-primary">View Details</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
