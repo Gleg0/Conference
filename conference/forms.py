@@ -1,8 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 
-from .models import User, Conference, Request, Paper, Review
+from .models import Conference, Request, Paper, Review
 
+User = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -66,9 +68,16 @@ class ConferenceRequestForm(forms.ModelForm):
             "ends_at": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
     def save(self, commit=True):
         req = super().save(commit=False)
-        req.type = "CONFERENCE_CREATE"
+        req.type = Request.Type.CONFERENCE_CREATE
+        if self.user:
+            req.user = self.user
+            req.speaker = self.user
         if commit:
             req.save()
         return req

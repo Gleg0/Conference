@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Review Detail</h1>
+  <p><strong>Paper:</strong> {{ review.paper.title }}</p>
+  <p><strong>Reviewer:</strong> {{ review.reviewer.username }}</p>
+  <p><strong>Rating:</strong> {{ review.rating }}</p>
+  <p><strong>Comment:</strong> {{ review.comment }}</p>
+  <a href="{{ back_url }}" class="btn btn-secondary mt-3">Back</a>
+{% endblock %}

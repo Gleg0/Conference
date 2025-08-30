@@ -1,350 +1,365 @@
-from django.contrib.auth import login, logout, get_user_model
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth import login, get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse, reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.shortcuts import get_object_or_404, redirect
 from django.db.models import Avg
+from .forms import (
+    CustomUserCreationForm, ChangeUserRoleForm, ConferenceForm,
+    PaperForm, ReviewForm, RoleChangeRequestForm, ConferenceRequestForm
+)
+from conference.models import Conference, Request, Paper, Review
 
-from conference.forms import (
-    CustomUserCreationForm,
-    ConferenceForm,
-    ChangeUserRoleForm,
-    RoleChangeRequestForm,
-    ConferenceRequestForm,
-    PaperForm,
-    ReviewForm
-)
-from conference.models import (
-    Conference,
-    Paper,
-    Review,
-    User,
-    Request
-)
+
+def get_back_url(request, default_url):
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return referer
+    return default_url
+
 
 User = get_user_model()
 
-def is_admin(user):
-    return user.role == "ADMIN"
+class SignUpView(CreateView):
+    form_class = CustomUserCreationForm
+    template_name = "registration/signup.html"
+    success_url = "conferences:home"
 
-def is_speaker(user):
-    return user.role == "SPEAKER"
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return redirect(self.success_url)
 
-def is_moderator(user):
-    return user.is_authenticated and user.role == "MODERATOR"
 
-def home(request):
-    return render(request, "conference/home.html")
+class ConferenceListView(ListView):
+    model = Conference
+    template_name = "conference/conference/conference_list.html"
+    context_object_name = "conferences"
+    ordering = ["starts_at"]
 
-def login_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
-            return redirect("conferences:home")
-        else:
-            messages.error(request, "Invalid username or password.")
-    else:
-        form = AuthenticationForm()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["back_url"] = reverse("conferences:home")
+        return context
 
-    return render(request, "conference/user/login.html", {"form": form})
 
-def signup_view(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=True)
-            login(request, user)
-            return redirect("conferences:home")
-    else:
-        form = CustomUserCreationForm()
-    return render(request, "conference/user/signup.html", {"form": form})
+class ConferenceDetailView(LoginRequiredMixin, DetailView):
+    model = Conference
+    template_name = "conference/conference/conference_detail.html"
+    context_object_name = "conference"
 
-def logout_view(request):
-    logout(request)
-    return redirect("conferences:home")
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["back_url"] = reverse("conferences:conference_list")
+        return context
 
-def conference_list(request):
-    conferences = Conference.objects.all().order_by("starts_at")
-    return render(request, "conference/conference/conferences.html", {"conferences": conferences})
-
-@login_required
-def conference_detail(request, pk):
-    conference = get_object_or_404(Conference, pk=pk)
-
-    if request.method == "POST":
+    def post(self, request, *args, **kwargs):
+        conference = self.get_object()
         conference.participants.add(request.user)
-        return redirect("conferences:conference_detail", pk=pk)
+        return redirect("conferences:conference_detail", pk=conference.pk)
 
-    return render(request, "conference/conference/conference_detail.html", {"conference": conference})
 
-@login_required
-@user_passes_test(is_admin)
-def create_conference(request):
-    if request.method == "POST":
-        form = ConferenceForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("conferences:conferences")
-    else:
-        form = ConferenceForm()
-    return render(request, "conference/conference/create_conference.html", {"form": form})
+class CreateConferenceView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Conference
+    form_class = ConferenceForm
+    template_name = "conference/conference/conference_form.html"
+    success_url = "conferences:conferences"
 
-@login_required
-@user_passes_test(is_admin)
-def user_list(request):
-    role_filter = request.GET.get("role")
-    if role_filter:
-        users = User.objects.filter(role=role_filter)
-    else:
-        users = User.objects.exclude(role__in=["ADMIN"])
-    return render(request, "conference/user/user_list.html", {"users": users, "role_filter": role_filter})
+    def test_func(self):
+        return self.request.user.is_admin
 
-@login_required
-@user_passes_test(is_admin)
-def change_role(request, user_id):
-    user_obj = get_object_or_404(User, id=user_id)
-    if request.method == "POST":
-        form = ChangeUserRoleForm(request.POST, instance=user_obj)
-        if form.is_valid():
-            form.save()
-            return redirect("conferences:user_list")
-    else:
-        form = ChangeUserRoleForm(instance=user_obj)
-    return render(request, "conference/user/change_role.html", {"form": form, "user_obj": user_obj})
 
-@login_required
-@user_passes_test(is_moderator)
-def moderator_user_list(request):
-    role_filter = request.GET.get("role")
+class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = User
+    template_name = "conference/user/user_list.html"
+    context_object_name = "users"
 
-    users = User.objects.exclude(role__in=["ADMIN", "MODERATOR"])
+    def test_func(self):
+        return self.request.user.is_admin
 
-    if role_filter in ["USER", "SPEAKER"]:
-        users = users.filter(role=role_filter)
+    def get_queryset(self):
+        role_filter = self.request.GET.get("role")
+        if role_filter:
+            return User.objects.filter(role=role_filter).exclude(role=User.Role.ADMIN)
+        return User.objects.exclude(role=User.Role.ADMIN)
 
-    return render(request, "conference/user/moderator_user_list.html", {"users": users, "role_filter": role_filter})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["role_filter"] = self.request.GET.get("role")
+        context["roles"] = User.Role
+        return context
 
-@login_required
-@user_passes_test(is_moderator)
-def moderator_change_role(request, user_id):
-    user = get_object_or_404(User, id=user_id)
 
-    if user.role == "USER":
-        user.role = "SPEAKER"
-    elif user.role == "SPEAKER":
-        user.role = "USER"
+class ChangeRoleView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = User
+    form_class = ChangeUserRoleForm
+    template_name = "conference/user/change_role.html"
+    success_url = reverse_lazy("conferences:user_list")
 
-    user.save()
-    return redirect("conferences:moderator_user_list")
+    def test_func(self):
+        return self.request.user.is_admin
 
-@login_required
-def request_role_change(request):
-    if request.method == "POST":
-        form = RoleChangeRequestForm(request.POST, user=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Request submitted successfully!")
-            return redirect("conferences:home")
-    else:
-        form = RoleChangeRequestForm(user=request.user)
-    return render(request, "conference/request/request_role_change.html", {"form": form})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["user_obj"] = self.get_object()
+        return context
 
-@login_required
-@user_passes_test(is_speaker)
-def request_conference(request):
-    if request.method == "POST":
-        form = ConferenceRequestForm(request.POST)
-        if form.is_valid():
-            req = form.save(commit=False)
-            req.user = request.user
-            req.speaker = request.user
-            req.save()
-            return redirect("conferences:home")
-    else:
-        form = ConferenceRequestForm()
-    return render(request, "conference/request/request_conference.html", {"form": form})
 
-@login_required
-@user_passes_test(lambda u: is_moderator(u) or is_admin(u))
-def request_list(request):
-    if is_moderator(request.user):
-        requests = Request.objects.exclude(
-            type="ROLE_CHANGE", role_requested="MODERATOR"
-        ).order_by("-created_at")
-    else:
-        requests = Request.objects.all().order_by("-created_at")
-    return render(request, "conference/request/request_list.html", {"requests": requests})
+class RequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Request
+    template_name = "conference/request/request_list.html"
+    context_object_name = "requests"
+    ordering = ["-created_at"]
 
-@login_required
-@user_passes_test(lambda u: is_moderator(u) or is_admin(u))
-def request_detail(request, pk):
-    req = get_object_or_404(Request, pk=pk)
+    def test_func(self):
+        return self.request.user.is_admin or self.request.user.is_moderator
 
-    if req.type == "CONFERENCE_CREATE":
-        from .forms import ConferenceRequestForm
-
-        if req.status == "PENDING":
-            if request.method == "POST":
-                action = request.POST.get("action")
-
-                if action == "approve":
-                    form = ConferenceRequestForm(request.POST, instance=req)
-                    if form.is_valid():
-                        Conference.objects.create(
-                            title=form.cleaned_data['conference_title'],
-                            description=form.cleaned_data['conference_description'],
-                            starts_at=form.cleaned_data['starts_at'],
-                            ends_at=form.cleaned_data['ends_at'],
-                            speaker=req.user
-                        )
-                        req.status = "APPROVED"
-                        req.save()
-                        return redirect("conferences:request_list")
-
-                elif action == "reject":
-                    req.status = "REJECTED"
-                    req.save()
-                    return redirect("conferences:request_list")
-
-            else:
-                form = ConferenceRequestForm(instance=req)
-
-            return render(
-                request,
-                "conference/request/request_detail_conference.html",
-                {"req": req, "form": form}
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_moderator:
+            return qs.exclude(
+                type=Request.Type.ROLE_CHANGE,
+                role_requested=Request.Role.MODERATOR
             )
+        return qs
 
-        return render(
-            request,
-            "conference/request/request_detail_conference.html",
-            {"req": req, "form": None}
-        )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["request_status"] = Request.Status
+        context["request_type"] = Request.Type
+        return context
 
-    if req.type == "ROLE_CHANGE":
-        if req.role_requested == "MODERATOR" and not is_admin(request.user):
+
+class RequestDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Request
+    context_object_name = "req"
+
+    def test_func(self):
+        return self.request.user.is_admin or self.request.user.is_moderator
+
+    def get_template_names(self):
+        if self.get_object().type == Request.Type.ROLE_CHANGE:
+            return ["conference/request/request_detail_role.html"]
+        return ["conference/request/request_detail_conference.html"]
+
+    def post(self, request, *args, **kwargs):
+        req = self.get_object()
+        action = request.POST.get("action")
+
+        if req.type == Request.Type.CONFERENCE_CREATE:
+            if action == "approve":
+                Conference.objects.create(
+                    title=req.conference_title,
+                    description=req.conference_description,
+                    starts_at=req.starts_at,
+                    ends_at=req.ends_at,
+                    speaker=req.speaker
+                )
+                req.status = Request.Status.APPROVED
+            elif action == "reject":
+                req.status = Request.Status.REJECTED
+            req.save()
             return redirect("conferences:request_list")
 
-        if req.status == "PENDING":
-            if request.method == "POST":
-                action = request.POST.get("action")
-                if action == "approve":
-                    if req.role_requested == "MODERATOR" and not is_admin(request.user):
-                        return redirect("conferences:request_list")
-                    req.user.role = req.role_requested
-                    req.user.save()
-                    req.status = "APPROVED"
-                elif action == "reject":
-                    req.status = "REJECTED"
-                req.save()
-                return redirect("conferences:request_list")
+        if req.type == Request.Type.ROLE_CHANGE:
+            if action == "approve":
+                req.user.role = req.role_requested
+                req.user.save()
+                req.status = Request.Status.APPROVED
+            elif action == "reject":
+                req.status = Request.Status.REJECTED
+            req.save()
+            return redirect("conferences:request_list")
 
-            return render(request, "conference/request/request_detail_role.html", {"req": req})
+        return super().post(request, *args, **kwargs)
 
-        return render(request, "conference/request/request_detail_role.html", {"req": req})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["request_status"] = Request.Status
 
-    return None
+        req = self.get_object()
+        if req.type == Request.Type.CONFERENCE_CREATE:
+            context["form"] = ConferenceRequestForm(instance=req)
+        return context
 
-@login_required
-def submit_paper(request, conference_id):
-    conference = get_object_or_404(Conference, id=conference_id)
 
-    if request.user not in conference.participants.all():
-        messages.error(request, "You must be registered for this conference to submit a paper.")
-        return redirect("conferences:conference_detail", pk=conference.id)
+class RoleChangeRequestCreateView(LoginRequiredMixin, CreateView):
+    model = Request
+    form_class = RoleChangeRequestForm
+    template_name = "conference/request/request_role_change.html"
+    success_url = reverse_lazy("conferences:home")
 
-    if request.method == "POST":
-        form = PaperForm(request.POST, request.FILES)
-        if form.is_valid():
-            paper = form.save(commit=False)
-            paper.author = request.user
-            paper.conference = conference
-            paper.save()
-            messages.success(request, "Your paper has been submitted successfully.")
-            return redirect("conferences:conference_detail", pk=conference.id)
-    else:
-        form = PaperForm()
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.type = Request.Type.ROLE_CHANGE
+        return super().form_valid(form)
 
-    return render(
-        request,
-        "conference/paper/submit_paper.html",
-        {"conference": conference, "form": form}
-    )
 
-@login_required
-def conference_papers(request, conference_id):
-    conference = get_object_or_404(Conference, id=conference_id)
-    papers = conference.papers.all().select_related("author").prefetch_related("reviews")
+class ConferenceRequestCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Request
+    form_class = ConferenceRequestForm
+    template_name = "conference/request/request_conference.html"
+    success_url = reverse_lazy("conferences:home")
 
-    papers_with_rating = []
-    for paper in papers:
-        avg_rating = paper.reviews.aggregate(avg=Avg('rating'))['avg'] or 0
-        user_has_reviewed = paper.reviews.filter(reviewer=request.user).exists()
-        papers_with_rating.append({
-            "paper": paper,
-            "average_rating": avg_rating,
-            "user_has_reviewed": user_has_reviewed
-        })
+    def test_func(self):
+        return self.request.user.is_speaker
 
-    return render(request, "conference/paper/conference_papers.html", {
-        "conference": conference,
-        "papers_with_rating": papers_with_rating
-    })
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
-@login_required
-def my_all_papers(request):
-    papers = Paper.objects.filter(author=request.user).select_related("conference")
-    return render(request, "conference/paper/my_all_papers.html", {
-        "papers": papers
-    })
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.speaker = self.request.user
+        form.instance.type = Request.Type.CONFERENCE_CREATE
+        return super().form_valid(form)
 
-@login_required
-def add_review(request, paper_id):
-    paper = get_object_or_404(Paper, id=paper_id)
 
-    if request.user == paper.author:
-        return redirect("conferences:conference_papers", conference_id=paper.conference.id)
+class PaperListView(LoginRequiredMixin, ListView):
+    model = Paper
+    template_name = "conference/paper/paper_list.html"
+    context_object_name = "papers"
 
-    existing_review = paper.reviews.filter(reviewer=request.user).first()
-    if existing_review:
-        return redirect("conferences:paper_reviews", paper_id=paper.id)
+    def get_queryset(self):
+        qs = Paper.objects.select_related("author", "conference").prefetch_related("reviews")
+        conference_id = self.kwargs.get("conference_id")
+        if conference_id:
+            qs = qs.filter(conference_id=conference_id)
+        else:
+            qs = qs.filter(author=self.request.user)
+        return qs
 
-    if request.method == "POST":
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.paper = paper
-            review.reviewer = request.user
-            review.save()
-            return redirect("conferences:paper_reviews", paper_id=paper.id)
-    else:
-        form = ReviewForm()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        conference_id = self.kwargs.get("conference_id")
+        context["conference"] = get_object_or_404(Conference, pk=conference_id) if conference_id else None
 
-    return render(request, "conference/review/add_review.html", {"form": form, "paper": paper})
+        papers_with_rating = []
+        for paper in context["papers"]:
+            reviews = paper.reviews.all()
+            avg_rating = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
+            user_has_reviewed = reviews.filter(reviewer=self.request.user).exists()
+            papers_with_rating.append({
+                "paper": paper,
+                "average_rating": avg_rating,
+                "user_has_reviewed": user_has_reviewed,
+            })
+        context["papers_with_rating"] = papers_with_rating
+        context["back_url"] = reverse("conferences:home")
+        return context
 
-@login_required
-def paper_reviews(request, paper_id):
-    paper = get_object_or_404(Paper, id=paper_id)
-    reviews = paper.reviews.select_related("reviewer")
 
-    average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+class PaperDetailView(LoginRequiredMixin, DetailView):
+    model = Paper
+    template_name = "conference/paper/paper_detail.html"
+    context_object_name = "paper"
 
-    user_has_reviewed = reviews.filter(reviewer=request.user).exists()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        paper = self.get_object()
 
-    return render(request, "conference/review/paper_reviews.html", {
-        "paper": paper,
-        "reviews": reviews,
-        "average_rating": average_rating,
-        "user_has_reviewed": user_has_reviewed,
-    })
+        context["author"] = paper.author
+        context["conference"] = paper.conference
+        context["abstract"] = paper.abstract
+        context["file_url"] = paper.file.url if paper.file else None
 
-@login_required
-def my_all_reviews(request):
-    reviews = request.user.reviews.select_related("paper", "paper__conference")
+        reviews = Review.objects.filter(paper=paper).select_related("reviewer")
+        context["reviews"] = reviews
+        context["avg_rating"] = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
 
-    return render(request, "conference/review/my_all_reviews.html", {
-        "reviews": reviews
-    })
+        context["back_url"] = reverse("conferences:home")
+        return context
+
+
+class PaperCreateView(LoginRequiredMixin, CreateView):
+    model = Paper
+    form_class = PaperForm
+    template_name = "conference/paper/paper_form.html"
+
+    def form_valid(self, form):
+        conference = get_object_or_404(Conference, id=self.kwargs["conference_id"])
+        form.instance.author = self.request.user
+        form.instance.conference = conference
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("conferences:conference_detail", args=[self.object.conference.id])
+
+
+class PaperUpdateView(LoginRequiredMixin, UpdateView):
+    model = Paper
+    form_class = PaperForm
+    template_name = "conference/paper/paper_form.html"
+
+    def get_queryset(self):
+        return Paper.objects.filter(author=self.request.user)
+
+    def get_success_url(self):
+        return "conferences:paper_detail", (self.object.pk,)
+
+
+class ReviewCreateView(LoginRequiredMixin, CreateView):
+    model = Review
+    form_class = ReviewForm
+    template_name = "conference/review/review_form.html"
+
+    def form_valid(self, form):
+        paper = get_object_or_404(Paper, pk=self.kwargs["paper_id"])
+        form.instance.reviewer = self.request.user
+        form.instance.paper = paper
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("conferences:paper_detail", args=[self.object.paper.pk])
+
+
+class ReviewUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Review
+    form_class = ReviewForm
+    template_name = "conference/review/review_form.html"
+
+    def test_func(self):
+        return self.get_object().reviewer == self.request.user
+
+    def get_success_url(self):
+        return "conferences:paper_detail", (self.object.paper.pk,)
+
+
+class ReviewListView(LoginRequiredMixin, ListView):
+    model = Review
+    template_name = "conference/review/review_list.html"
+    context_object_name = "reviews"
+
+    def get_queryset(self):
+        paper_id = self.kwargs.get("paper_id")
+        if paper_id:
+            return Review.objects.filter(paper_id=paper_id).select_related("paper", "reviewer")
+        return Review.objects.filter(reviewer=self.request.user).select_related("paper")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        paper_id = self.kwargs.get("paper_id")
+        if paper_id:
+            context["paper"] = get_object_or_404(Paper, pk=paper_id)
+            context["conference"] = context["paper"].conference
+            context["back_url"] = get_back_url(self.request, default_url=reverse("conferences:paper_detail", args=[paper_id]))
+        else:
+            context["paper"] = None
+            context["conference"] = None
+            context["back_url"] = reverse("conferences:home")
+        return context
+
+
+class ReviewDetailView(LoginRequiredMixin, DetailView):
+    model = Review
+    template_name = "conference/review/review_detail.html"
+    context_object_name = "review"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        review = self.get_object()
+        context["paper"] = review.paper
+        context["conference"] = review.paper.conference if review.paper.conference else None
+        context["back_url"] = reverse("conferences:home")
+        return context

@@ -20,7 +20,7 @@
                     </div>
                     <h3 class="card-title">Conferences</h3>
                     <p class="card-text">Browse and manage academic conferences.</p>
-                    <a href="{% url 'conferences:conferences' %}" class="btn btn-primary">
+                    <a href="{% url 'conferences:conference_list' %}" class="btn btn-primary">
                         <i class="bi bi-arrow-right"></i> Go to Conferences
                     </a>
                 </div>
@@ -35,7 +35,7 @@
                     </div>
                     <h3 class="card-title">My Papers</h3>
                     <p class="card-text">View and manage your submitted papers.</p>
-                    <a href="{% url 'conferences:my_all_papers' %}" class="btn btn-warning">
+                    <a href="{% url 'conferences:paper_user_list' %}" class="btn btn-warning">
                         <i class="bi bi-arrow-right"></i> My Papers
                     </a>
                 </div>
@@ -49,7 +49,7 @@
                     </div>
                     <h3 class="card-title">My reviews</h3>
                     <p class="card-text">Handle paper reviews.</p>
-                    <a href="{% url 'conferences:my_all_reviews' %}" class="btn btn-info">
+                    <a href="{% url 'conferences:review_user_list' %}" class="btn btn-info">
                         <i class="bi bi-arrow-right"></i> View Reviews
                     </a>
                 </div>
@@ -58,7 +58,7 @@
         {% endif %}
     </div>
 
-    {% if user.is_authenticated and user.role == 'ADMIN' %}
+    {% if user.is_authenticated and user.is_admin %}
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
@@ -77,7 +77,7 @@
         </div>
     </div>
     {% endif %}
-    {% if user.is_authenticated and user.role == 'MODERATOR' %}
+    {% if user.is_authenticated and user.is_moderator %}
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">

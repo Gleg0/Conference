@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Paper: {{ paper.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ paper.title }}</h2>
+    <p><strong>Author:</strong> {{ author.username }}</p>
+    <p><strong>Conference:</strong>
+        {% if conference %}
+            <a href="{% url 'conferences:conference_detail' conference.id %}">{{ conference.title }}</a>
+        {% else %}
+            <em>No conference assigned</em>
+        {% endif %}
+    </p>
+    <p><strong>Abstract:</strong> {{ abstract }}</p>
+
+    {% if file_url %}
+        <p><strong>File:</strong>
+            <a href="{{ file_url }}" target="_blank" class="btn btn-sm btn-primary">View file</a>
+        </p>
+    {% else %}
+        <p><em>No file attached</em></p>
+    {% endif %}
+
+    <hr>
+
+    <h4>Reviews (Average rating: {{ avg_rating|floatformat:1 }})</h4>
+    {% if reviews %}
+        <ul>
+            {% for review in reviews %}
+                <li>
+                    <strong>{{ review.reviewer.username }}:</strong> {{ review.rating }}/5
+                    <br>
+                    {{ review.comment|default:"—" }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><em>No reviews yet.</em></p>
+    {% endif %}
+
+    <a href="{{ back_url }}" class="btn btn-secondary mt-3">Back</a>
+</div>
+{% endblock %}

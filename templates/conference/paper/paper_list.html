@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Papers in {{ conference.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if  conference%}
+    <h2 class="mb-3">Papers in {{ conference.title }}</h2>
+    {% else %}
+    <h2 class="mb-3">My papers</h2>
+    {% endif %}
+    {% if papers_with_rating %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Avg Rating</th>
+                    <th>Reviews</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in papers_with_rating %}
+                    {% with paper=item.paper %}
+                        <tr>
+                            <td>{{ paper.title }}</td>
+                            <td>{{ paper.author.username }}</td>
+                            <td>
+                                {% if paper.reviews.all %}
+                                    {{ item.average_rating|floatformat:1 }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>{{ paper.reviews.count }}</td>
+                            <td>
+                                <a href="{% url 'conferences:paper_detail' paper.id %}" class="btn btn-sm btn-outline-primary">View detail</a>
+                                <a href="{% url 'conferences:paper_review_list' paper.id %}" class="btn btn-sm btn-outline-info">Reviews</a>
+                                {% if user != paper.author and not item.user_has_reviewed %}
+                                    <a href="{% url 'conferences:review_create' paper.id %}" class="btn btn-sm btn-outline-success">Add Review</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted">No papers submitted yet.</p>
+    {% endif %}
+    <a href="{{ back_url }}" class="btn btn-secondary mt-3">Back</a>
+</div>
+{% endblock %}

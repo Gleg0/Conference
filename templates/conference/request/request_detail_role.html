@@ -10,7 +10,7 @@
     {{ req.reason }}
   </div>
 
-  {% if req.status == "PENDING" %}
+  {% if req.status == request_status.PENDING %}
   <form method="post">
     {% csrf_token %}
     <button name="action" value="approve" class="btn btn-success mt-3">Approve</button>

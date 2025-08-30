@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}My Reviews{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if  paper %}
+    <h2 class="mb-3">Reviews in {{ paper.title }}</h2>
+    {% else %}
+    <h2 class="mb-3">My reviews</h2>
+    {% endif %}
+
+    {% if reviews %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Paper</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.paper.title }}</td>
+                        <td>{{ review.rating }}</td>
+                        <td>{{ review.comment|default:"—" }}</td>
+                        <td>
+                            <a href="{% url 'conferences:review_detail' review.id %}?next={% if paper %}{% url 'conferences:paper_review_list' paper.id %}{% else %}{% url 'conferences:review_user_list' %}{% endif %}" class="btn btn-sm btn-primary">
+                                Review detail
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted">No reviews yet.</p>
+    {% endif %}
+    <a href="{{ back_url }}" class="btn btn-secondary mt-3">Back</a>
+</div>
+{% endblock %}

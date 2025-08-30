@@ -8,9 +8,13 @@
     <form method="get" class="mb-3 d-flex gap-2">
         <select name="role" class="form-select w-auto">
             <option value="">All roles</option>
-            <option value="USER" {% if role_filter == "USER" %}selected{% endif %}>User</option>
-            <option value="MODERATOR" {% if role_filter == "MODERATOR" %}selected{% endif %}>Moderator</option>
-            <option value="SPEAKER" {% if role_filter == "SPEAKER" %}selected{% endif %}>Speaker</option>
+            {% for key, value in roles.choices %}
+                {% if key != roles.ADMIN %}
+                    <option value="{{ key }}" {% if role_filter == key %}selected{% endif %}>
+                        {{ value }}
+                    </option>
+                {% endif %}
+            {% endfor %}
         </select>
         <button type="submit" class="btn btn-primary">Filter</button>
     </form>
@@ -31,7 +35,7 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.role }}</td>
                 <td>
-                    <a href="{% url 'conferences:change_role' user.id %}" class="btn btn-sm btn-warning">Change Role</a>
+                    <a href="{% url 'conferences:change_user_role' user.id %}" class="btn btn-sm btn-warning">Change Role</a>
                 </td>
             </tr>
             {% endfor %}

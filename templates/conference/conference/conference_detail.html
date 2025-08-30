@@ -16,13 +16,10 @@
                 <p class="text-success">
                     <i class="bi bi-check-circle"></i> You have joined this conference
                 </p>
-                <a href="{% url 'conferences:submit_paper' conference.id %}" class="btn btn-success mt-2">
+                <a href="{% url 'conferences:paper_create' conference.id %}" class="btn btn-success mt-2">
                     Submit Paper
                 </a>
-                <a href="{% url 'conferences:conference_papers' conference.id %}" class="btn btn-primary mt-2">
-                    My Papers
-                </a>
-                <a href="{% url 'conferences:conference_papers' conference.id %}" class="btn btn-info mt-2">
+                <a href="{% url 'conferences:conference_paper_list' conference.id %}" class="btn btn-info mt-2">
                     View All Papers
                 </a>
             {% else %}
@@ -36,6 +33,7 @@
                 <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to join
             </p>
         {% endif %}
+        <a href="{% url 'conferences:conference_list' %}" class="btn btn-secondary mt-2">Back</a>
     </div>
 </div>
 {% endblock %}

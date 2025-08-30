@@ -39,12 +39,14 @@
       {% endif %}
     </div>
 
+    {% if req.status == request_status.PENDING %}
     <button type="submit" name="action" value="approve" class="btn btn-success">
       Approve & Create Conference
     </button>
     <button type="submit" name="action" value="reject" class="btn btn-danger">
       Reject Request
     </button>
+    {% endif %}
   </form>
 </div>
 {% endblock %}

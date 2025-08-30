@@ -1,50 +1,45 @@
+from django.contrib.auth.views import LogoutView, LoginView
 from django.urls import path
-from .views import (
-    home,
-    login_view,
-    signup_view,
-    logout_view,
-    conference_list,
-    create_conference,
-    user_list,
-    change_role,
-    moderator_user_list,
-    moderator_change_role,
-    conference_detail,
-    request_list,
-    request_role_change,
-    request_conference,
-    request_detail,
-    submit_paper,
-    conference_papers,
-    my_all_papers,
-    add_review,
-    paper_reviews,
-    my_all_reviews,
-)
+from conference import views
+from django.views.generic import TemplateView
 
 app_name = "conferences"
 
 urlpatterns = [
-    path("", home, name="home"),
-    path("login/", login_view, name="login"),
-    path('signup/', signup_view, name='signup'),
-    path("logout/", logout_view, name="logout"),
-    path("conferences/", conference_list, name="conferences"),
-    path("conferences/<int:pk>/", conference_detail, name="conference_detail"),
-    path("conference_create/", create_conference, name="conference_create"),
-    path("users/", user_list, name="user_list"),
-    path("users/<int:user_id>/change_role/", change_role, name="change_role"),
-    path("moderator/users/", moderator_user_list, name="moderator_user_list"),
-    path("moderator/users/<int:user_id>/change_role/", moderator_change_role, name="moderator_change_role"),
-    path("requests/", request_list, name="request_list"),
-    path('requests/<int:pk>/', request_detail, name='request_detail'),
-    path("requests/role/", request_role_change, name="request_role_change"),
-    path("requests/conference/", request_conference, name="request_conference"),
-    path("conference/<int:conference_id>/submit-paper/", submit_paper, name="submit_paper"),
-    path("conference/<int:conference_id>/papers/", conference_papers, name="conference_papers"),
-    path("my-papers/", my_all_papers, name="my_all_papers"),
-    path("paper/<int:paper_id>/review/", add_review, name="add_review"),
-    path("paper/<int:paper_id>/reviews/", paper_reviews, name="paper_reviews"),
-    path("my-reviews/", my_all_reviews, name="my_all_reviews"),
+    # Home
+    path("", TemplateView.as_view(template_name="conference/home.html"), name="home"),
+
+    # Auth
+    path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("signup/", views.SignUpView.as_view(), name="signup"),
+
+    # Conferences
+    path("conferences/", views.ConferenceListView.as_view(), name="conference_list"),
+    path("conferences/<int:pk>/", views.ConferenceDetailView.as_view(), name="conference_detail"),
+    path("conferences/create/", views.CreateConferenceView.as_view(), name="conference_create"),
+
+    # Users
+    path("users/", views.UserListView.as_view(), name="user_list"),
+    path("users/<int:pk>/change-role/", views.ChangeRoleView.as_view(), name="change_user_role"),
+
+    # Requests
+    path("requests/", views.RequestListView.as_view(), name="request_list"),
+    path("requests/<int:pk>/", views.RequestDetailView.as_view(), name="request_detail"),
+    path("requests/role/create/", views.RoleChangeRequestCreateView.as_view(), name="request_role_create"),
+    path("requests/conference/create/", views.ConferenceRequestCreateView.as_view(), name="request_conference_create"),
+
+    # Papers
+    path("papers/", views.PaperListView.as_view(), name="paper_user_list"),
+    path("conferences/<int:conference_id>/papers/", views.PaperListView.as_view(), name="conference_paper_list"),
+    path("papers/<int:pk>/", views.PaperDetailView.as_view(), name="paper_detail"),
+    path("papers/<int:conference_id>/create/", views.PaperCreateView.as_view(), name="paper_create"),
+    path("papers/<int:pk>/edit/", views.PaperUpdateView.as_view(), name="paper_edit"),
+
+    # Reviews
+    path("reviews/", views.ReviewListView.as_view(), name="review_user_list"),
+    path("papers/<int:paper_id>/reviews/", views.ReviewListView.as_view(), name="paper_review_list"),
+    path("reviews/<int:pk>/", views.ReviewDetailView.as_view(), name="review_detail"),
+    path("papers/<int:paper_id>/review/add/", views.ReviewCreateView.as_view(), name="review_create"),
+    path("reviews/<int:pk>/edit/", views.ReviewUpdateView.as_view(), name="review_edit"),
 ]
