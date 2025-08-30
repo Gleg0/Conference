@@ -39,7 +39,6 @@ class ConferenceListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["back_url"] = reverse("conferences:home")
         return context
 
 
@@ -267,7 +266,6 @@ class PaperDetailView(LoginRequiredMixin, DetailView):
         context["reviews"] = reviews
         context["avg_rating"] = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
 
-        context["back_url"] = reverse("conferences:home")
         return context
 
 
