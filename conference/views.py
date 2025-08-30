@@ -246,7 +246,6 @@ class PaperListView(LoginRequiredMixin, ListView):
                 "user_has_reviewed": user_has_reviewed,
             })
         context["papers_with_rating"] = papers_with_rating
-        context["back_url"] = reverse("conferences:home")
         return context
 
 
@@ -343,11 +342,9 @@ class ReviewListView(LoginRequiredMixin, ListView):
         if paper_id:
             context["paper"] = get_object_or_404(Paper, pk=paper_id)
             context["conference"] = context["paper"].conference
-            context["back_url"] = get_back_url(self.request, default_url=reverse("conferences:paper_detail", args=[paper_id]))
         else:
             context["paper"] = None
             context["conference"] = None
-            context["back_url"] = reverse("conferences:home")
         return context
 
 
@@ -361,5 +358,4 @@ class ReviewDetailView(LoginRequiredMixin, DetailView):
         review = self.get_object()
         context["paper"] = review.paper
         context["conference"] = review.paper.conference if review.paper.conference else None
-        context["back_url"] = reverse("conferences:home")
         return context

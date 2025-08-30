@@ -33,7 +33,7 @@
                 <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to join
             </p>
         {% endif %}
-        <a href="{% url 'conferences:conference_list' %}" class="btn btn-secondary mt-2">Back</a>
+        <a href="javascript:history.back()" class="btn btn-secondary mt-2">Back</a>
     </div>
 </div>
 {% endblock %}
