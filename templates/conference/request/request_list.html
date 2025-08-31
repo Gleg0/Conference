@@ -1,23 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Requests{% endblock %}
+{% load static %}
 {% block content %}
-<div class="card shadow p-4">
-  <h3 class="mb-3">Requests</h3>
+    <div class="card shadow p-4">
+        <h3 class="mb-3">Requests</h3>
 
-  {% if requests %}
-  <ul class="list-group">
-    {% for r in requests %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ r.user.username }} - {{ r.get_type_display }}
-        <span class="badge {% if r.status == request_status.PENDING %}bg-warning{% elif r.status == request_status.APPROVED %}bg-success{% else %}bg-danger{% endif %}">
+        {% if requests %}
+            <ul class="list-group">
+                {% for r in requests %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ r.user.username }} - {{ r.get_type_display }}
+                        <span class="badge {% if r.status == request_status.PENDING %}bg-warning{% elif r.status == request_status.APPROVED %}bg-success{% else %}bg-danger{% endif %}">
           {{ r.status }}
         </span>
-        <a href="{% url 'conferences:request_detail' r.id %}" class="btn btn-primary btn-sm">View Details</a>
-      </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-    <div class="alert alert-info mt-3">No pending requests</div>
-  {% endif %}
-</div>
+                        <a href="{% url 'conferences:request_detail' r.id %}" class="btn btn-primary btn-sm">View
+                            Details</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info mt-3">No pending requests</div>
+        {% endif %}
+    </div>
+    <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
 {% endblock %}

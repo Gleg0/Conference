@@ -5,20 +5,26 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.db.models import Avg
 from .forms import (
-    CustomUserCreationForm, ChangeUserRoleForm, ConferenceForm,
-    PaperForm, ReviewForm, RoleChangeRequestForm, ConferenceRequestForm
+    CustomUserCreationForm,
+    ChangeUserRoleForm,
+    ConferenceForm,
+    PaperForm,
+    ReviewForm,
+    RoleChangeRequestForm,
+    ConferenceRequestForm,
 )
 from conference.models import Conference, Request, Paper, Review
 
 
 def get_back_url(request, default_url):
-    referer = request.META.get('HTTP_REFERER')
+    referer = request.META.get("HTTP_REFERER")
     if referer:
         return referer
     return default_url
 
 
 User = get_user_model()
+
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -58,7 +64,9 @@ class ConferenceDetailView(LoginRequiredMixin, DetailView):
         return redirect("conferences:conference_detail", pk=conference.pk)
 
 
-class CreateConferenceView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class CreateConferenceView(
+    LoginRequiredMixin, UserPassesTestMixin, CreateView
+):
     model = Conference
     form_class = ConferenceForm
     template_name = "conference/conference/conference_form.html"
@@ -79,7 +87,9 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def get_queryset(self):
         role_filter = self.request.GET.get("role")
         if role_filter:
-            return User.objects.filter(role=role_filter).exclude(role=User.Role.ADMIN)
+            return User.objects.filter(role=role_filter).exclude(
+                role=User.Role.ADMIN
+            )
         return User.objects.exclude(role=User.Role.ADMIN)
 
     def get_context_data(self, **kwargs):
@@ -118,7 +128,7 @@ class RequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         if self.request.user.is_moderator:
             return qs.exclude(
                 type=Request.Type.ROLE_CHANGE,
-                role_requested=Request.Role.MODERATOR
+                role_requested=Request.Role.MODERATOR,
             )
         return qs
 
@@ -152,7 +162,7 @@ class RequestDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                     description=req.conference_description,
                     starts_at=req.starts_at,
                     ends_at=req.ends_at,
-                    speaker=req.speaker
+                    speaker=req.speaker,
                 )
                 req.status = Request.Status.APPROVED
             elif action == "reject":
@@ -194,7 +204,9 @@ class RoleChangeRequestCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ConferenceRequestCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class ConferenceRequestCreateView(
+    LoginRequiredMixin, UserPassesTestMixin, CreateView
+):
     model = Request
     form_class = ConferenceRequestForm
     template_name = "conference/request/request_conference.html"
@@ -205,7 +217,7 @@ class ConferenceRequestCreateView(LoginRequiredMixin, UserPassesTestMixin, Creat
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs["user"] = self.request.user
         return kwargs
 
     def form_valid(self, form):
@@ -221,7 +233,9 @@ class PaperListView(LoginRequiredMixin, ListView):
     context_object_name = "papers"
 
     def get_queryset(self):
-        qs = Paper.objects.select_related("author", "conference").prefetch_related("reviews")
+        qs = Paper.objects.select_related(
+            "author", "conference"
+        ).prefetch_related("reviews")
         conference_id = self.kwargs.get("conference_id")
         if conference_id:
             qs = qs.filter(conference_id=conference_id)
@@ -232,18 +246,26 @@ class PaperListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         conference_id = self.kwargs.get("conference_id")
-        context["conference"] = get_object_or_404(Conference, pk=conference_id) if conference_id else None
+        context["conference"] = (
+            get_object_or_404(Conference, pk=conference_id)
+            if conference_id
+            else None
+        )
 
         papers_with_rating = []
         for paper in context["papers"]:
             reviews = paper.reviews.all()
             avg_rating = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
-            user_has_reviewed = reviews.filter(reviewer=self.request.user).exists()
-            papers_with_rating.append({
-                "paper": paper,
-                "average_rating": avg_rating,
-                "user_has_reviewed": user_has_reviewed,
-            })
+            user_has_reviewed = reviews.filter(
+                reviewer=self.request.user
+            ).exists()
+            papers_with_rating.append(
+                {
+                    "paper": paper,
+                    "average_rating": avg_rating,
+                    "user_has_reviewed": user_has_reviewed,
+                }
+            )
         context["papers_with_rating"] = papers_with_rating
         return context
 
@@ -264,7 +286,9 @@ class PaperDetailView(LoginRequiredMixin, DetailView):
 
         reviews = Review.objects.filter(paper=paper).select_related("reviewer")
         context["reviews"] = reviews
-        context["avg_rating"] = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
+        context["avg_rating"] = (
+            reviews.aggregate(Avg("rating"))["rating__avg"] or 0
+        )
 
         return context
 
@@ -275,13 +299,17 @@ class PaperCreateView(LoginRequiredMixin, CreateView):
     template_name = "conference/paper/paper_form.html"
 
     def form_valid(self, form):
-        conference = get_object_or_404(Conference, id=self.kwargs["conference_id"])
+        conference = get_object_or_404(
+            Conference, id=self.kwargs["conference_id"]
+        )
         form.instance.author = self.request.user
         form.instance.conference = conference
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse("conferences:conference_detail", args=[self.object.conference.id])
+        return reverse(
+            "conferences:conference_detail", args=[self.object.conference.id]
+        )
 
 
 class PaperUpdateView(LoginRequiredMixin, UpdateView):
@@ -331,8 +359,12 @@ class ReviewListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         paper_id = self.kwargs.get("paper_id")
         if paper_id:
-            return Review.objects.filter(paper_id=paper_id).select_related("paper", "reviewer")
-        return Review.objects.filter(reviewer=self.request.user).select_related("paper")
+            return Review.objects.filter(paper_id=paper_id).select_related(
+                "paper", "reviewer"
+            )
+        return Review.objects.filter(
+            reviewer=self.request.user
+        ).select_related("paper")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -355,5 +387,7 @@ class ReviewDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         review = self.get_object()
         context["paper"] = review.paper
-        context["conference"] = review.paper.conference if review.paper.conference else None
+        context["conference"] = (
+            review.paper.conference if review.paper.conference else None
+        )
         return context

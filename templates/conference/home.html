@@ -1,112 +1,111 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Welcome{% endblock %}
-
 {% block content %}
-<main>
-    <div class="px-4 py-5 my-5 text-center">
-        <h1 class="display-4 fw-bold">Welcome to Conference Management System</h1>
-        <div class="col-lg-6 mx-auto">
-            <p class="lead mb-4">Manage your conferences, papers, reviews, and proceedings efficiently.</p>
+    <main>
+        <div class="px-4 py-5 my-5 text-center">
+            <h1 class="display-4 fw-bold">Welcome to Conference Management System</h1>
+            <div class="col-lg-6 mx-auto">
+                <p class="lead mb-4">Manage your conferences, papers, reviews, and proceedings efficiently.</p>
+            </div>
         </div>
-    </div>
 
-    <div class="row g-4 py-5">
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="feature-icon bg-primary bg-gradient text-white rounded-3 mb-3">
-                        <i class="bi bi-calendar-event" style="font-size: 2rem;"></i>
+        <div class="row g-4 py-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon bg-primary bg-gradient text-white rounded-3 mb-3">
+                            <i class="bi bi-calendar-event" style="font-size: 2rem;"></i>
+                        </div>
+                        <h3 class="card-title">Conferences</h3>
+                        <p class="card-text">Browse and manage academic conferences.</p>
+                        <a href="{% url 'conferences:conference_list' %}" class="btn btn-primary">
+                            <i class="bi bi-arrow-right"></i> Go to Conferences
+                        </a>
                     </div>
-                    <h3 class="card-title">Conferences</h3>
-                    <p class="card-text">Browse and manage academic conferences.</p>
-                    <a href="{% url 'conferences:conference_list' %}" class="btn btn-primary">
-                        <i class="bi bi-arrow-right"></i> Go to Conferences
-                    </a>
                 </div>
             </div>
-        </div>
-        {% if user.is_authenticated %}
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="feature-icon bg-warning bg-gradient text-white rounded-3 mb-3">
-                        <i class="bi bi-person-workspace" style="font-size: 2rem;"></i>
+            {% if user.is_authenticated %}
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-warning bg-gradient text-white rounded-3 mb-3">
+                                <i class="bi bi-person-workspace" style="font-size: 2rem;"></i>
+                            </div>
+                            <h3 class="card-title">My Papers</h3>
+                            <p class="card-text">View and manage your submitted papers.</p>
+                            <a href="{% url 'conferences:paper_user_list' %}" class="btn btn-warning">
+                                <i class="bi bi-arrow-right"></i> My Papers
+                            </a>
+                        </div>
                     </div>
-                    <h3 class="card-title">My Papers</h3>
-                    <p class="card-text">View and manage your submitted papers.</p>
-                    <a href="{% url 'conferences:paper_user_list' %}" class="btn btn-warning">
-                        <i class="bi bi-arrow-right"></i> My Papers
-                    </a>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon bg-info bg-gradient text-white rounded-3 mb-3">
+                                <i class="bi bi-people" style="font-size: 2rem;"></i>
+                            </div>
+                            <h3 class="card-title">My reviews</h3>
+                            <p class="card-text">Handle paper reviews.</p>
+                            <a href="{% url 'conferences:review_user_list' %}" class="btn btn-info">
+                                <i class="bi bi-arrow-right"></i> View Reviews
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if user.is_authenticated and user.is_admin %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="bi bi-gear"></i> Quick Actions</h4>
+                            <div class="d-flex gap-2 mt-3">
+                                <a href="{% url 'conferences:conference_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Create Conference
+                                </a>
+                                <a href="{% url 'conferences:user_list' %}" class="btn btn-secondary">
+                                    <i class="bi bi-people"></i> Manage Users
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="feature-icon bg-info bg-gradient text-white rounded-3 mb-3">
-                        <i class="bi bi-people" style="font-size: 2rem;"></i>
-                    </div>
-                    <h3 class="card-title">My reviews</h3>
-                    <p class="card-text">Handle paper reviews.</p>
-                    <a href="{% url 'conferences:review_user_list' %}" class="btn btn-info">
-                        <i class="bi bi-arrow-right"></i> View Reviews
-                    </a>
-                </div>
-            </div>
-        </div>
         {% endif %}
-    </div>
-
-    {% if user.is_authenticated and user.is_admin %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title"><i class="bi bi-gear"></i> Quick Actions</h4>
-                    <div class="d-flex gap-2 mt-3">
-                        <a href="{% url 'conferences:conference_create' %}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Create Conference
-                        </a>
-                        <a href="{% url 'conferences:user_list' %}" class="btn btn-secondary">
-                            <i class="bi bi-people"></i> Manage Users
-                        </a>
+        {% if user.is_authenticated and user.is_moderator %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="bi bi-gear"></i> Quick Actions</h4>
+                            <div class="d-flex gap-2 mt-3">
+                                <a href="{% url 'conferences:conference_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Create Conference
+                                </a>
+                                <a href="{% url 'conferences:moderator_user_list' %}" class="btn btn-secondary">
+                                    <i class="bi bi-people"></i> Manage Users
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
-    {% if user.is_authenticated and user.is_moderator %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title"><i class="bi bi-gear"></i> Quick Actions</h4>
-                    <div class="d-flex gap-2 mt-3">
-                        <a href="{% url 'conferences:conference_create' %}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Create Conference
-                        </a>
-                        <a href="{% url 'conferences:moderator_user_list' %}" class="btn btn-secondary">
-                            <i class="bi bi-people"></i> Manage Users
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    <style>
-        .feature-icon {
-            width: 4rem;
-            height: 4rem;
-            border-radius: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-        }
-    </style>
-</main>
+        <style>
+            .feature-icon {
+                width: 4rem;
+                height: 4rem;
+                border-radius: 0.75rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+        </style>
+    </main>
 {% endblock %}

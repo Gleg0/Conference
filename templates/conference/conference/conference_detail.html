@@ -1,39 +1,39 @@
 {% extends "base.html" %}
-
 {% block title %}{{ conference.title }}{% endblock %}
-
+{% load static %}
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <h2 class="card-title">{{ conference.title }}</h2>
-        <p class="card-text">{{ conference.description }}</p>
-        <p><strong>Starts:</strong> {{ conference.starts_at }}</p>
-        <p><strong>Ends:</strong> {{ conference.ends_at }}</p>
-        <p><strong>Speaker:</strong> {{ conference.speaker.username }}</p>
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">{{ conference.title }}</h2>
+            <p class="card-text">{{ conference.description }}</p>
+            <p><strong>Starts:</strong> {{ conference.starts_at }}</p>
+            <p><strong>Ends:</strong> {{ conference.ends_at }}</p>
+            <p><strong>Speaker:</strong> {{ conference.speaker.username }}</p>
 
-        {% if user.is_authenticated %}
-            {% if user in conference.participants.all %}
-                <p class="text-success">
-                    <i class="bi bi-check-circle"></i> You have joined this conference
-                </p>
-                <a href="{% url 'conferences:paper_create' conference.id %}" class="btn btn-success mt-2">
-                    Submit Paper
-                </a>
-                <a href="{% url 'conferences:conference_paper_list' conference.id %}" class="btn btn-info mt-2">
-                    View All Papers
-                </a>
+            {% if user.is_authenticated %}
+                {% if user in conference.participants.all %}
+                    <p class="text-success">
+                        <i class="bi bi-check-circle"></i> You have joined this conference
+                    </p>
+                    <a href="{% url 'conferences:paper_create' conference.id %}" class="btn btn-success mt-2">
+                        Submit Paper
+                    </a>
+                    <a href="{% url 'conferences:conference_paper_list' conference.id %}" class="btn btn-info mt-2">
+                        View All Papers
+                    </a>
+                {% else %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-primary">Join Conference</button>
+                    </form>
+                {% endif %}
             {% else %}
-                <form method="post">
-                    {% csrf_token %}
-                    <button class="btn btn-primary">Join Conference</button>
-                </form>
+                <p>
+                    <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to join
+                </p>
             {% endif %}
-        {% else %}
-            <p>
-                <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to join
-            </p>
-        {% endif %}
-        <a href="javascript:history.back()" class="btn btn-secondary mt-2">Back</a>
+            <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+            <script src="{% static 'conference/js/back.js' %}"></script>
+        </div>
     </div>
-</div>
 {% endblock %}

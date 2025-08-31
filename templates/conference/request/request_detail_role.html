@@ -1,23 +1,26 @@
 {% extends "base.html" %}
 {% block title %}Role Change Request{% endblock %}
+{% load static %}
 {% block content %}
-<div class="card shadow p-4">
-  <h3 class="mb-3">Role Change Request</h3>
-  <p><strong>User:</strong> {{ req.user.username }}</p>
-  <p><strong>Requested Role:</strong> {{ req.role_requested }}</p>
-  <p><strong>Reason:</strong></p>
-  <div class="p-2 bg-light rounded" style="max-height: 150px; overflow-y: auto;">
-    {{ req.reason }}
-  </div>
+    <div class="card shadow p-4">
+        <h3 class="mb-3">Role Change Request</h3>
+        <p><strong>User:</strong> {{ req.user.username }}</p>
+        <p><strong>Requested Role:</strong> {{ req.role_requested }}</p>
+        <p><strong>Reason:</strong></p>
+        <div class="p-2 bg-light rounded" style="max-height: 150px; overflow-y: auto;">
+            {{ req.reason }}
+        </div>
 
-  {% if req.status == request_status.PENDING %}
-  <form method="post">
-    {% csrf_token %}
-    <button name="action" value="approve" class="btn btn-success mt-3">Approve</button>
-    <button name="action" value="reject" class="btn btn-danger mt-3">Reject</button>
-  </form>
-  {% else %}
-  <p class="text-muted mt-3">Request is {{ req.status }}</p>
-  {% endif %}
-</div>
+        {% if req.status == request_status.PENDING %}
+            <form method="post">
+                {% csrf_token %}
+                <button name="action" value="approve" class="btn btn-success mt-3">Approve</button>
+                <button name="action" value="reject" class="btn btn-danger mt-3">Reject</button>
+            </form>
+        {% else %}
+            <p class="text-muted mt-3">Request is {{ req.status }}</p>
+        {% endif %}
+    </div>
+    <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
 {% endblock %}

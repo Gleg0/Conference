@@ -38,12 +38,12 @@ class Conference(models.Model):
     speaker = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="conferences_as_speaker"
+        related_name="conferences_as_speaker",
     )
     participants = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name="conference_participation",
-        blank=True
+        blank=True,
     )
 
     def __str__(self):
@@ -56,12 +56,10 @@ class Paper(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="papers"
+        related_name="papers",
     )
     conference = models.ForeignKey(
-        Conference,
-        on_delete=models.CASCADE,
-        related_name="papers"
+        Conference, on_delete=models.CASCADE, related_name="papers"
     )
     submitted_at = models.DateTimeField(auto_now_add=True)
     file = models.FileField(upload_to="papers/", null=True, blank=True)
@@ -71,11 +69,13 @@ class Paper(models.Model):
 
 
 class Review(models.Model):
-    paper = models.ForeignKey(Paper, on_delete=models.CASCADE, related_name="reviews")
+    paper = models.ForeignKey(
+        Paper, on_delete=models.CASCADE, related_name="reviews"
+    )
     reviewer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="reviews"
+        related_name="reviews",
     )
     rating = models.IntegerField()
     comment = models.TextField()
@@ -86,7 +86,9 @@ class Review(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["paper", "reviewer"], name="unique_review_per_paper")
+            models.UniqueConstraint(
+                fields=["paper", "reviewer"], name="unique_review_per_paper"
+            )
         ]
 
 
@@ -107,17 +109,11 @@ class Request(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="requests"
+        related_name="requests",
     )
-    type = models.CharField(
-        max_length=20,
-        choices=Type.choices
-    )
+    type = models.CharField(max_length=20, choices=Type.choices)
     role_requested = models.CharField(
-        max_length=15,
-        choices=Role.choices,
-        null=True,
-        blank=True
+        max_length=15, choices=Role.choices, null=True, blank=True
     )
     reason = models.TextField(null=True, blank=True)
     conference_title = models.CharField(max_length=63, null=True, blank=True)
@@ -129,12 +125,10 @@ class Request(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="conference_requests"
+        related_name="conference_requests",
     )
     status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING
+        max_length=20, choices=Status.choices, default=Status.PENDING
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

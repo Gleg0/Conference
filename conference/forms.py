@@ -18,10 +18,16 @@ class ConferenceForm(forms.ModelForm):
         model = Conference
         fields = ["title", "description", "starts_at", "ends_at", "speaker"]
         widgets = {
-            "starts_at": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
-            "ends_at": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
+            "starts_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
+            "ends_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
             "title": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "description": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
             "speaker": forms.Select(attrs={"class": "form-select"}),
         }
 
@@ -39,9 +45,9 @@ class ChangeUserRoleForm(forms.ModelForm):
                 choices=[
                     ("USER", "User"),
                     ("MODERATOR", "Moderator"),
-                    ("SPEAKER", "Speaker")
+                    ("SPEAKER", "Speaker"),
                 ],
-                attrs={"class": "form-select"}
+                attrs={"class": "form-select"},
             )
         }
 
@@ -52,7 +58,9 @@ class RoleChangeRequestForm(forms.ModelForm):
         fields = ["role_requested", "reason"]
         widgets = {
             "role_requested": forms.Select(attrs={"class": "form-select"}),
-            "reason": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "reason": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -72,12 +80,25 @@ class RoleChangeRequestForm(forms.ModelForm):
 class ConferenceRequestForm(forms.ModelForm):
     class Meta:
         model = Request
-        fields = ["conference_title", "conference_description", "starts_at", "ends_at"]
+        fields = [
+            "conference_title",
+            "conference_description",
+            "starts_at",
+            "ends_at",
+        ]
         widgets = {
-            "conference_title": forms.TextInput(attrs={"class": "form-control"}),
-            "conference_description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "starts_at": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
-            "ends_at": forms.DateTimeInput(attrs={"type": "datetime-local", "class": "form-control"}),
+            "conference_title": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "conference_description": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "starts_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
+            "ends_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -101,7 +122,9 @@ class PaperForm(forms.ModelForm):
         fields = ["title", "abstract", "file"]
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control"}),
-            "abstract": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "abstract": forms.Textarea(
+                attrs={"class": "form-control", "rows": 4}
+            ),
             "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
 
@@ -113,5 +136,7 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ["rating", "comment"]
         widgets = {
-            "comment": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "comment": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
         }
