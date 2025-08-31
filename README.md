@@ -9,20 +9,20 @@ Technologies:
     HTML / CSS / Bootstrap (frontend),
     JavaScript.
 
-Project structure:  
+Project structure:
+```
 Conference/
-├─ conference/ # main app
-│ ├─ apps.py
-│ ├─ forms.py
-│ ├─ models.py
-│ ├─ urls.py
-│ └─ views.py
-├─ config/ # Django settings
-├─ media/ # media files
-├─ static/ # static files
-├─ README.md
+├─ conference/          # main app
+│   ├─ static/
+│   │   └─ conference/js/
+│   ├─ templates/
+│   └─ models.py
+├─ config/              # Django settings
+├─ media/               # uploaded files
+├─ static/              # global static files
 ├─ manage.py
 └─ requirements.txt
+```
 
 Installation:
 
