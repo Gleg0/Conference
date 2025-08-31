@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Change Role{% endblock %}
 {% load static %}
-<script src="{% static 'js/back.js' %}"></script>
 {% block content %}
     <div class="container">
         <h2 class="mb-4">Change Role for {{ user_obj.username }}</h2>
@@ -15,4 +14,5 @@
         </form>
     </div>
     <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
 {% endblock %}

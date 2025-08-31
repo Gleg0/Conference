@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}User List{% endblock %}
 {% load static %}
-<script src="{% static 'js/back.js' %}"></script>
 {% block content %}
     <div class="container">
         <h2 class="mb-4">Users</h2>
@@ -45,4 +44,5 @@
         </table>
     </div>
     <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
 {% endblock %}
