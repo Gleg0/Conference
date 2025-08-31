@@ -6,10 +6,12 @@ from .models import Conference, Request, Paper, Review
 
 User = get_user_model()
 
+
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ("username", "email", "password1", "password2")
+
 
 class ConferenceForm(forms.ModelForm):
     class Meta:
@@ -27,13 +29,22 @@ class ConferenceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["speaker"].queryset = User.objects.filter(role="SPEAKER")
 
+
 class ChangeUserRoleForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["role"]
         widgets = {
-            "role": forms.Select(choices=[("USER", "User"), ("MODERATOR", "Moderator"), ("SPEAKER", "Speaker")], attrs={"class": "form-select"})
+            "role": forms.Select(
+                choices=[
+                    ("USER", "User"),
+                    ("MODERATOR", "Moderator"),
+                    ("SPEAKER", "Speaker")
+                ],
+                attrs={"class": "form-select"}
+            )
         }
+
 
 class RoleChangeRequestForm(forms.ModelForm):
     class Meta:
@@ -50,12 +61,13 @@ class RoleChangeRequestForm(forms.ModelForm):
 
     def save(self, commit=True):
         req = super().save(commit=False)
-        req.type = "ROLE_CHANGE"
+        req.type = Request.Type.ROLE_CHANGE
         if self.user:
             req.user = self.user
         if commit:
             req.save()
         return req
+
 
 class ConferenceRequestForm(forms.ModelForm):
     class Meta:
@@ -82,6 +94,7 @@ class ConferenceRequestForm(forms.ModelForm):
             req.save()
         return req
 
+
 class PaperForm(forms.ModelForm):
     class Meta:
         model = Paper
@@ -91,6 +104,7 @@ class PaperForm(forms.ModelForm):
             "abstract": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
             "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
+
 
 class ReviewForm(forms.ModelForm):
     rating = forms.IntegerField(min_value=1, max_value=10)

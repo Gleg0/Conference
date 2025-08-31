@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.db import models
 
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
@@ -27,7 +28,6 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == self.Role.MODERATOR
 
-UserModel = settings.AUTH_USER_MODEL
 
 class Conference(models.Model):
     title = models.CharField(max_length=63)
@@ -49,20 +49,34 @@ class Conference(models.Model):
     def __str__(self):
         return self.title
 
+
 class Paper(models.Model):
     title = models.CharField(max_length=200)
     abstract = models.TextField()
-    author = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="papers")
-    conference = models.ForeignKey(Conference, on_delete=models.CASCADE, related_name="papers")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="papers"
+    )
+    conference = models.ForeignKey(
+        Conference,
+        on_delete=models.CASCADE,
+        related_name="papers"
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
     file = models.FileField(upload_to="papers/", null=True, blank=True)
 
     def __str__(self):
         return self.title
 
+
 class Review(models.Model):
     paper = models.ForeignKey(Paper, on_delete=models.CASCADE, related_name="reviews")
-    reviewer = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name="reviews")
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
     rating = models.IntegerField()
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,7 +85,10 @@ class Review(models.Model):
         return f"Review by {self.reviewer.username} for {self.paper.title}"
 
     class Meta:
-        unique_together = ("paper", "reviewer")
+        constraints = [
+            models.UniqueConstraint(fields=["paper", "reviewer"], name="unique_review_per_paper")
+        ]
+
 
 class Request(models.Model):
     class Role(models.TextChoices):
@@ -88,7 +105,7 @@ class Request(models.Model):
         REJECTED = "REJECTED", "Rejected"
 
     user = models.ForeignKey(
-        UserModel,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="requests"
     )
@@ -108,7 +125,7 @@ class Request(models.Model):
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
     speaker = models.ForeignKey(
-        UserModel,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
