@@ -3,6 +3,10 @@ from django.conf import settings
 from django.db import models
 
 
+# We use settings.AUTH_USER_MODEL in models because
+# ForeignKey/M2M fields require a string reference to the user model.
+# This ensures migrations work correctly even with a custom user model.
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"

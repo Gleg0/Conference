@@ -4,6 +4,9 @@ from django import forms
 
 from .models import Conference, Request, Paper, Review
 
+# We use get_user_model() in forms because
+# here we need the actual User model class to create/query instances,
+# not just a string reference.
 User = get_user_model()
 
 
