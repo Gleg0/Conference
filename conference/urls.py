@@ -2,6 +2,8 @@ from django.contrib.auth.views import LogoutView, LoginView
 from django.urls import path
 from conference import views
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = "conferences"
 
@@ -101,3 +103,6 @@ urlpatterns = [
         name="review_edit",
     ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
