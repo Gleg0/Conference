@@ -18,10 +18,6 @@ def get_back_url(request, default_url):
     return default_url
 
 
-
-# We use get_user_model() in views because
-# here we need the actual User model class to create/query instances,
-# not just a string reference.
 User = get_user_model()
 
 class SignUpView(CreateView):
