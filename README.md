@@ -60,3 +60,6 @@ Start the development server:
 ```bash
 python manage.py runserver
 ```
+
+Test deploy:
+https://conference-rtdm.onrender.com/
