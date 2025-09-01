@@ -13,27 +13,39 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ("username", "email", "password1", "password2")
 
 
+from django import forms
+from .models import Conference, User
+
 class ConferenceForm(forms.ModelForm):
     class Meta:
         model = Conference
         fields = ["title", "description", "starts_at", "ends_at", "speaker"]
         widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "starts_at": forms.DateTimeInput(
-                attrs={"type": "datetime-local", "class": "form-control"}
+                attrs={"type": "datetime-local", "class": "form-control"},
+                format="%Y-%m-%dT%H:%M"
             ),
             "ends_at": forms.DateTimeInput(
-                attrs={"type": "datetime-local", "class": "form-control"}
-            ),
-            "title": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3}
+                attrs={"type": "datetime-local", "class": "form-control"},
+                format="%Y-%m-%dT%H:%M"
             ),
             "speaker": forms.Select(attrs={"class": "form-select"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["speaker"].queryset = User.objects.filter(role="SPEAKER")
+        self.fields["speaker"].queryset = User.objects.filter(role=User.Role.SPEAKER)
+        self.fields["starts_at"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["ends_at"].input_formats = ["%Y-%m-%dT%H:%M"]
+
+    def clean_speaker(self):
+        speaker = self.cleaned_data.get("speaker")
+        if speaker and speaker.role != User.Role.SPEAKER:
+            raise forms.ValidationError("Selected user is not a speaker")
+        return speaker
+
 
 
 class ChangeUserRoleForm(forms.ModelForm):
