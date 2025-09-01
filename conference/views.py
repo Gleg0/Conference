@@ -70,7 +70,7 @@ class CreateConferenceView(
     model = Conference
     form_class = ConferenceForm
     template_name = "conference/conference/conference_form.html"
-    success_url = reverse_lazy("conferences:conferences")
+    success_url = reverse_lazy("conferences:conference_list")
 
     def test_func(self):
         return self.request.user.is_admin
