@@ -18,3 +18,19 @@ DATABASES = {
         "PORT": config("DB_PORT", default="5432"),
     }
 }
+
+STORAGES = {
+    "default": {
+        "BACKEND": "base.storages.WindowsCompatibleDropboxStorage",
+        "OPTIONS": {
+            "oauth2_access_token": os.getenv("DROPBOX_OAUTH2_ACCESS_TOKEN"),
+            "oauth2_refresh_token": os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN"),
+            "app_secret": os.getenv("DROPBOX_APP_SECRET"),
+            "app_key": os.getenv("DROPBOX_APP_KEY"),
+            "root_path": os.getenv("DROPBOX_ROOT_PATH"),
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
