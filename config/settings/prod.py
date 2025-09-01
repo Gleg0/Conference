@@ -2,7 +2,7 @@ from .base import *
 from decouple import config
 import dj_database_url
 
-DEBUG = False
+DEBUG = True
 SECRET_KEY = config("SECRET_KEY")
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=lambda v: [s.strip() for s in v.split(",")])
