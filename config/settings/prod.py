@@ -27,13 +27,13 @@ SESSION_COOKIE_SECURE = True
 
 STORAGES = {
     "default": {
-        "BACKEND": "storages.backends.dropbox.DropboxStorage",
+        "BACKEND": "storages.backends.dropbox.DropBoxStorage",
         "OPTIONS": {
             "oauth2_access_token": os.getenv("DROPBOX_OAUTH2_ACCESS_TOKEN"),
             "oauth2_refresh_token": os.getenv("DROPBOX_OAUTH2_REFRESH_TOKEN"),
             "app_secret": os.getenv("DROPBOX_APP_SECRET"),
             "app_key": os.getenv("DROPBOX_APP_KEY"),
-            "root_path": os.getenv("DROPBOX_ROOT_PATH"),
+            "root_path": os.getenv("DROPBOX_ROOT_PATH", "/papers"),
         },
     },
     "staticfiles": {
