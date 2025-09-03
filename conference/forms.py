@@ -78,6 +78,7 @@ class RoleChangeRequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        self.fields["reason"].required = True
 
     def save(self, commit=True):
         req = super().save(commit=False)
