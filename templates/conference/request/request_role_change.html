@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Request Role Change{% endblock %}
+{% load static %}
+{% block content %}
+    <div class="card shadow p-4">
+        <h3 class="mb-3">Request Role Change</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-3">
+                {{ form.role_requested.label_tag }}
+                {{ form.role_requested }}
+                {% if form.role_requested.errors %}
+                    <div class="invalid-feedback d-block">{{ form.role_requested.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.reason.label_tag }}
+                {{ form.reason }}
+                {% if form.reason.errors %}
+                    <div class="invalid-feedback d-block">{{ form.reason.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+        </form>
+    </div>
+    <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,155 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
+
+from .models import Conference, Request, Paper, Review
+
+User = get_user_model()
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+
+from django import forms
+from .models import Conference, User
+
+class ConferenceForm(forms.ModelForm):
+    class Meta:
+        model = Conference
+        fields = ["title", "description", "starts_at", "ends_at", "speaker"]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "starts_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"},
+                format="%Y-%m-%dT%H:%M"
+            ),
+            "ends_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"},
+                format="%Y-%m-%dT%H:%M"
+            ),
+            "speaker": forms.Select(attrs={"class": "form-select"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["speaker"].queryset = User.objects.filter(role=User.Role.SPEAKER)
+        self.fields["starts_at"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["ends_at"].input_formats = ["%Y-%m-%dT%H:%M"]
+
+    def clean_speaker(self):
+        speaker = self.cleaned_data.get("speaker")
+        if speaker and speaker.role != User.Role.SPEAKER:
+            raise forms.ValidationError("Selected user is not a speaker")
+        return speaker
+
+
+
+class ChangeUserRoleForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["role"]
+        widgets = {
+            "role": forms.Select(
+                choices=[
+                    ("USER", "User"),
+                    ("MODERATOR", "Moderator"),
+                    ("SPEAKER", "Speaker"),
+                ],
+                attrs={"class": "form-select"},
+            )
+        }
+
+
+class RoleChangeRequestForm(forms.ModelForm):
+    class Meta:
+        model = Request
+        fields = ["role_requested", "reason"]
+        widgets = {
+            "role_requested": forms.Select(attrs={"class": "form-select"}),
+            "reason": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        self.fields["reason"].required = True
+
+    def save(self, commit=True):
+        req = super().save(commit=False)
+        req.type = Request.Type.ROLE_CHANGE
+        if self.user:
+            req.user = self.user
+        if commit:
+            req.save()
+        return req
+
+
+class ConferenceRequestForm(forms.ModelForm):
+    class Meta:
+        model = Request
+        fields = [
+            "conference_title",
+            "conference_description",
+            "starts_at",
+            "ends_at",
+        ]
+        widgets = {
+            "conference_title": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "conference_description": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "starts_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
+            "ends_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local", "class": "form-control"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        req = super().save(commit=False)
+        req.type = Request.Type.CONFERENCE_CREATE
+        if self.user:
+            req.user = self.user
+            req.speaker = self.user
+        if commit:
+            req.save()
+        return req
+
+
+class PaperForm(forms.ModelForm):
+    class Meta:
+        model = Paper
+        fields = ["title", "abstract", "file"]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "abstract": forms.Textarea(
+                attrs={"class": "form-control", "rows": 4}
+            ),
+            "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+
+class ReviewForm(forms.ModelForm):
+    rating = forms.IntegerField(min_value=1, max_value=10)
+
+    class Meta:
+        model = Review
+        fields = ["rating", "comment"]
+        widgets = {
+            "comment": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+        }

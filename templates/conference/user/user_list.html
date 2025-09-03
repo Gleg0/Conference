@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}User List{% endblock %}
+{% load static %}
+{% block content %}
+    <div class="container">
+        <h2 class="mb-4">Users</h2>
+
+        <form method="get" class="mb-3 d-flex gap-2">
+            <select name="role" class="form-select w-auto">
+                <option value="">All roles</option>
+                {% for key, value in roles.choices %}
+                    {% if key != roles.ADMIN %}
+                        <option value="{{ key }}" {% if role_filter == key %}selected{% endif %}>
+                            {{ value }}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        <a href="{% url 'conferences:change_user_role' user.id %}" class="btn btn-sm btn-warning">Change
+                            Role</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
+{% endblock %}

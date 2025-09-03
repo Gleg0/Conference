@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Request New Conference{% endblock %}
+{% load static %}
+{% block content %}
+    <div class="card shadow p-4">
+        <h3 class="mb-3">Request New Conference</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-3">
+                {{ form.conference_title.label_tag }}
+                {{ form.conference_title }}
+                {% if form.conference_title.errors %}
+                    <div class="invalid-feedback d-block">{{ form.conference_title.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.conference_description.label_tag }}
+                {{ form.conference_description }}
+                {% if form.conference_description.errors %}
+                    <div class="invalid-feedback d-block">{{ form.conference_description.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.starts_at.label_tag }}
+                {{ form.starts_at }}
+                {% if form.starts_at.errors %}
+                    <div class="invalid-feedback d-block">{{ form.starts_at.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.ends_at.label_tag }}
+                {{ form.ends_at }}
+                {% if form.ends_at.errors %}
+                    <div class="invalid-feedback d-block">{{ form.ends_at.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            {% if req.status == request_status.PENDING %}
+                <button type="submit" name="action" value="approve" class="btn btn-success">
+                    Approve & Create Conference
+                </button>
+                <button type="submit" name="action" value="reject" class="btn btn-danger">
+                    Reject Request
+                </button>
+            {% endif %}
+        </form>
+    </div>
+    <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+    <script src="{% static 'conference/js/back.js' %}"></script>
+{% endblock %}

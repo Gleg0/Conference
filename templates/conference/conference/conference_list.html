@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Conferences{% endblock %}
+{% load static %}
+{% block content %}
+    <main class="container py-5">
+        <h1 class="mb-4">Conferences</h1>
+
+        {% if conferences %}
+            <div class="row g-4">
+                {% for conference in conferences %}
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ conference.title }}</h5>
+                                <p class="card-text">{{ conference.description|truncatechars:100 }}</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Starts: {{ conference.starts_at|date:"d M Y H:i" }} <br>
+                                        Ends: {{ conference.ends_at|date:"d M Y H:i" }}
+                                    </small>
+                                </p>
+                                <p class="card-text"><strong>Speaker:</strong> {{ conference.speaker.username }}</p>
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'conferences:conference_detail' conference.pk %}"
+                                       class="btn btn-primary">View Details</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No conferences available.</p>
+        {% endif %}
+        <a href="#" id="back-btn" class="btn btn-secondary mt-3">Back</a>
+        <script src="{% static 'conference/js/back.js' %}"></script>
+    </main>
+{% endblock %}
